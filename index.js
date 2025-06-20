@@ -1,0 +1,2 @@
+import"./assets/styles-0jjx1hvP.js";const t="https://dummyjson.com/products",o="/search?q=";document.querySelector(".categories");document.querySelector(".products");document.querySelector(".search-form__btn");async function c(){const e=document.querySelector(".search-form__input").value;return await(await fetch(`${t}${o}${e}`)).json()}c().then(e=>{console.log(e)}).catch(e=>{alert(e.message)});
+//# sourceMappingURL=index.js.map
