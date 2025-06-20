@@ -9,7 +9,10 @@ const productsContainer = document.querySelector('.products');
 const searchBtn = document.querySelector('.search-form__btn');
 
 async function searchProduct() {
-  const query = document.querySelector('.search-form__input').value;
+  const query = document.querySelector('.search-form__input').value.trim();
+  if (!query) {
+    throw new Error('Please enter a search term');
+  }
   const response = await fetch(
     `${BASE_URL}${PRODUCT_SEARCH_END_POINT}${query}`
   );
@@ -17,10 +20,48 @@ async function searchProduct() {
   return data;
 }
 
-searchProduct()
-  .then(data => {
+function clearProducts() {
+  productsContainer.innerHTML = '';
+}
+
+searchBtn.addEventListener('click', async e => {
+  e.preventDefault();
+
+  clearProducts();
+
+  try {
+    const data = await searchProduct();
     console.log(data);
-  })
-  .catch(error => {
+
+    if (!data.products.length) {
+      alert('No products found for your search term');
+      return;
+    }
+    productsContainer.insertAdjacentHTML(
+      'beforeend',
+      createMarkup(data.products)
+    );
+  } catch (error) {
     alert(error.message);
-  });
+  }
+});
+
+function createMarkup(arr) {
+  return arr
+    .map(
+      ({ images, title, category, description, rating, price }) => `
+    <li class="product-card">
+      <img src="${images[0]}" alt="${title}" />
+      <div class="product-info">
+        <h3>${title}</h3>
+        <p>Category: ${category}</p>
+        <p>Description: ${description}</p>
+        <p>Rating: ${rating}</p>
+        <p>Price: $${price}</p>
+        
+      </div>
+    </li>
+  `
+    )
+    .join('');
+}
