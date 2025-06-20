@@ -7,6 +7,65 @@ const PRODUCT_SEARCH_END_POINT = '/search?q=';
 const categoriesContainer = document.querySelector('.categories');
 const productsContainer = document.querySelector('.products');
 const searchBtn = document.querySelector('.search-form__btn');
+let currentPage = 1;
+const PRODUCTS_PER_PAGE = 12;
+
+async function loadProducts(page = 1) {
+  try {
+    const skip = (page - 1) * PRODUCTS_PER_PAGE;
+    const response = await fetch(
+      `${BASE_URL}?limit=${PRODUCTS_PER_PAGE}&skip=${skip}`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error('Failed to load products');
+  }
+}
+
+async function displayInitialProducts() {
+  try {
+    const data = await loadProducts();
+    if (!data.products.length) {
+      alert('No products found');
+      return;
+    }
+    productsContainer.insertAdjacentHTML(
+      'beforeend',
+      createMarkup(data.products)
+    );
+
+    if (data.total > PRODUCTS_PER_PAGE) {
+      addLoadMoreButton();
+    }
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function addLoadMoreButton() {
+  const loadMoreBtn = document.createElement('button');
+  loadMoreBtn.textContent = 'Load more';
+  loadMoreBtn.classList.add('load-more-btn');
+  productsContainer.after(loadMoreBtn);
+
+  loadMoreBtn.addEventListener('click', async () => {
+    currentPage += 1;
+    try {
+      const data = await loadProducts(currentPage);
+      if (currentPage * PRODUCTS_PER_PAGE >= data.total) {
+        loadMoreBtn.style.display = 'none';
+      }
+
+      productsContainer.insertAdjacentHTML(
+        'beforeend',
+        createMarkup(data.products)
+      );
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+}
 
 async function searchProduct() {
   const query = document.querySelector('.search-form__input').value.trim();
@@ -65,3 +124,5 @@ function createMarkup(arr) {
     )
     .join('');
 }
+
+displayInitialProducts();
